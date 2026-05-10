@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante IVR</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        .promocion { background: #e2f0d9; padding: 10px; border-left: 5px solid #548235; margin-bottom: 10px; }
+        form { display: flex; flex-direction: column; }
+        input { margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🍕 Restaurante IVR</h1>
+
+    <h2>Promociones Activas</h2>
+    <div id="lista-promociones">
+        <p>Cargando promociones...</p>
+    </div>
+
+    <hr>
+
+      <h2>Validar Cliente</h2>
+    <form id="form-validacion">
+        <label>Teléfono o Cédula:</label>
+        <input type="text" id="identificador" required placeholder="Ej: 3001234567 o 10203040">
+        <button type="submit" style="background: #28a745;">Validar Cliente</button>
+    </form>
+    <div id="resultado-validacion" style="margin-top: 10px;"></div>
+
+    <h2>Solicitar Menú Digital</h2>
+    <form id="form-menu">
+        <label>ID del Cliente:</label>
+        <input type="number" id="id_cliente_menu" required placeholder="Ej: 1">
+        
+        <label>Canal de envío:</label>
+        <select id="canal_envio" required style="margin-bottom: 10px; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <option value="email">Correo Electrónico (Email)</option>
+            <option value="whatsapp">Mensaje de WhatsApp</option>
+        </select>
+        
+        <button type="submit" style="background: #ffc107; color: #333;">Enviar Menú</button>
+    </form>
+    <div id="resultado-menu" style="margin-top: 10px;"></div>
+
+    <h2>Hacer una Reserva</h2>
+    <form id="form-reserva">
+        <label>ID del Cliente:</label>
+        <input type="number" id="id_cliente" required placeholder="Ej: 1">
+        
+        <label>Fecha y Hora:</label>
+        <input type="datetime-local" id="fecha_reserva" required>
+        
+        <label>Cantidad de Personas:</label>
+        <input type="number" id="cantidad_personas" required placeholder="Ej: 4">
+        
+        <button type="submit">Confirmar Reserva</button>
+    </form>
+</div>
+
+<script>
+    const API_URL = 'https://restaurante-qa.onrender.com/api/v1'; 
+
+    async function cargarPromociones() {
+        const contenedor = document.getElementById('lista-promociones');
+        try {
+           
+            const respuesta = await fetch(`${API_URL}/promotions/active`);
+            const datos = await respuesta.json();
+
+            contenedor.innerHTML = '';
+
+            datos.promociones.forEach(promo => {
+                contenedor.innerHTML += `
+                    <div class="promocion">
+                        <strong>${promo.nombre}</strong><br>
+                        <small>${promo.descripcion}</small>
+                    </div>
+                `;
+            });
+        } catch (error) {
+            contenedor.innerHTML = '<p style="color:red;">Error al cargar promociones. ¿El servidor está encendido?</p>';
+        }
+    }
+
+    // 4. Función para enviar menú digital (POST)
+    document.getElementById('form-menu').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+
+        const idCliente = document.getElementById('id_cliente_menu').value;
+        const canal = document.getElementById('canal_envio').value;
+        const resultadoDiv = document.getElementById('resultado-menu');
+        
+        resultadoDiv.innerHTML = '<p>Procesando envío...</p>';
+
+        try {
+            const respuesta = await fetch(`${API_URL}/content/send-menu`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    id_cliente: idCliente,
+                    canal: canal
+                })
+            });
+
+            const datos = await respuesta.json();
+
+            if (respuesta.ok) {
+                // Si todo sale bien, mensaje en verde
+                resultadoDiv.innerHTML = `<p style="color: green;">✅ ${datos.message}</p>`;
+                document.getElementById('form-menu').reset(); // Limpia el formulario
+            } else {
+                // Si el cliente no existe o no tiene correo, mensaje en rojo
+                resultadoDiv.innerHTML = `<p style="color: red;">❌ ${datos.message}</p>`;
+            }
+        } catch (error) {
+            resultadoDiv.innerHTML = '<p style="color: red;">Error de conexión con el servidor.</p>';
+        }
+    });
+
+    // Función para validar cliente (POST)
+    document.getElementById('form-validacion').addEventListener('submit', async function(event) {
+        event.preventDefault(); 
+
+        const identificador = document.getElementById('identificador').value;
+        const resultadoDiv = document.getElementById('resultado-validacion');
+        
+        resultadoDiv.innerHTML = '<p>Buscando cliente...</p>';
+
+        try {
+            const respuesta = await fetch(`${API_URL}/auth/validate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identificador: identificador })
+            });
+
+            const datos = await respuesta.json();
+
+            if (respuesta.ok) {
+                // Si el cliente existe, mostramos el mensaje de éxito en verde
+                resultadoDiv.innerHTML = `<p style="color: green;">✅ ¡Validación exitosa! Hola, <strong>${datos.cliente.nombre}</strong>.</p>`;
+            } else {
+                // Si no existe, mostramos el error en rojo
+                resultadoDiv.innerHTML = `<p style="color: red;">❌ ${datos.message}</p>`;
+            }
+        } catch (error) {
+            resultadoDiv.innerHTML = '<p style="color: red;">Error de conexión con el servidor.</p>';
+        }
+    });
+
+
+    // 2. Función para enviar una reserva (POST)
+    document.getElementById('form-reserva').addEventListener('submit', async function(event) {
+        event.preventDefault(); // Evita que la página se recargue
+
+        // Recogemos los datos del formulario
+        const datosReserva = {
+            id_cliente: document.getElementById('id_cliente').value,
+            // Convertimos la fecha al formato que acepta MySQL
+            fecha_reserva: document.getElementById('fecha_reserva').value.replace('T', ' ') + ':00', 
+            cantidad_personas: document.getElementById('cantidad_personas').value
+        };
+
+        try {
+            // (Nota las tildes invertidas `)
+            const respuesta = await fetch(`${API_URL}/reservations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosReserva)
+            });
+
+            if (respuesta.ok) {
+                alert('¡Reserva creada con éxito! 🎉');
+                document.getElementById('form-reserva').reset(); // Limpia el formulario
+            } else {
+                alert('Error al crear la reserva.');
+            }
+        } catch (error) {
+            alert('Error de conexión con el servidor.');
+        }
+    });
+
+    // Cargar las promociones apenas se abre la página
+    cargarPromociones();
+</script>
+
+</body>
+</html>
