@@ -1,10 +1,25 @@
 const express = require('express');
 const mysql = require('mysql2');
+const cors = require('cors');
 
 const app = express();
-const cors = require('cors');
+
+// 1. Permisos y configuración
 app.use(cors());
 app.use(express.json()); 
+
+// 2. Configuración de la base de datos (¡Siempre arriba para que las rutas la encuentren!)
+const db = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'Root123!',
+    database: process.env.DB_NAME || 'Local instance MySQL80',
+    port: process.env.DB_PORT || 3306,
+    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : null,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
 /**
  * Endpoint RF01 – Validación de Cliente
@@ -91,6 +106,7 @@ app.get('/api/v1/orders/status/:numero_pedido', (req, res) => {
                 success: true,
                 numero_pedido: numero_pedido,
                 estado: results[0].estado,
+                // ✅ CORREGIDO: Se agregaron las tildes invertidas
                 mensaje: `Su pedido se encuentra: ${results[0].estado}` 
             });
         } else {
@@ -162,6 +178,7 @@ app.post('/api/v1/content/send-menu', (req, res) => {
                     message: "El cliente no tiene un correo electrónico registrado." 
                 });
             }
+            // ✅ CORREGIDO: Se agregaron las tildes invertidas
             console.log(`✉️ [Simulación] Enviando PDF del menú al correo: ${cliente.email}`);
             
             return res.status(200).json({ 
@@ -170,6 +187,7 @@ app.post('/api/v1/content/send-menu', (req, res) => {
             });
 
         } else if (canal === 'whatsapp') {
+            // ✅ CORREGIDO: Se agregaron las tildes invertidas
             console.log(`📱 [Simulación] Enviando PDF del menú al WhatsApp: ${cliente.telefono}`);
             
             return res.status(200).json({ 
@@ -200,9 +218,8 @@ app.post('/api/v1/support/transfer', (req, res) => {
         });
     }
 
-    // Aquí simularíamos guardar el registro en una tabla de 'llamadas_soporte'
-    // o avisar a la cola del Call Center.
-    console.log('🎧 [Call Center] Alerta: Transfiriendo la llamada del número ${telefono} a un asesor disponible...');
+    // ✅ CORREGIDO: Cambiamos comillas simples por tildes invertidas
+    console.log(`🎧 [Call Center] Alerta: Transfiriendo la llamada del número ${telefono} a un asesor disponible...`);
 
     return res.status(200).json({
         success: true,
@@ -211,20 +228,9 @@ app.post('/api/v1/support/transfer', (req, res) => {
     });
 });
 
-// Iniciar el servidor (¡Siempre al final!)
-const db = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'Root123!',
-    database: process.env.DB_NAME || 'Local instance MySQL80',
-    port: process.env.DB_PORT || 3306,
-    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : null,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
-
+// 3. Iniciar el servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor API REST corriendo en http://localhost:${PORT}`);
+    // ✅ CORREGIDO: Se agregaron las tildes invertidas
+    console.log(`Servidor API REST corriendo en puerto ${PORT}`);
 });
