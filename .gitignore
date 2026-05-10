@@ -1,6 +1,7 @@
 # Ignorar archivos de configuración de VS Code
 .vscode/
-
+node_modules/
+.env    
 # Ignorar archivos temporales de MySQL o logs
 *.log
 *.sql.bak
