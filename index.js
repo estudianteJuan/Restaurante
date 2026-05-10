@@ -5,22 +5,6 @@ const app = express();
 // Lentes puestos: Ahora Express entiende JSON
 app.use(express.json()); 
 
-// 1. Configuración de la conexión a MySQL
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',           
-    password: 'Root123!',
-    database: 'restaurante_ivr'
-});
-
-db.connect(err => {
-    if (err) {
-        console.error('Error conectando a la base de datos:', err);
-        return;
-    }
-    console.log('¡Conectado exitosamente a la base de datos MySQL!');
-});
-
 /**
  * Endpoint RF01 – Validación de Cliente
  */
@@ -227,7 +211,7 @@ app.post('/api/v1/support/transfer', (req, res) => {
 });
 
 // Iniciar el servidor (¡Siempre al final!)
-const conectores = mysql.createPool({
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'Root123!',
