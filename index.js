@@ -227,13 +227,16 @@ app.post('/api/v1/support/transfer', (req, res) => {
 });
 
 // Iniciar el servidor (¡Siempre al final!)
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'Root123!',
     database: process.env.DB_NAME || 'Local instance MySQL80',
     port: process.env.DB_PORT || 3306,
-    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : null
+    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : null,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 });
 
 db.connect((err) => {
