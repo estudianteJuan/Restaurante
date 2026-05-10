@@ -230,9 +230,16 @@ app.post('/api/v1/support/transfer', (req, res) => {
 const db = mysql.createConnection({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'tu_clave_local',
-    database: process.env.DB_NAME || 'tu_db_local',
+    password: process.env.DB_PASSWORD || 'Root123!',
+    database: process.env.DB_NAME || 'Local instance MySQL80',
     port: process.env.DB_PORT || 3306,
     ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : null
 });
 
+db.connect((err) => {
+    if (err) {
+        console.error('Error conectando a la base de datos:', err);
+        return;
+    }
+    console.log('Conectado a la base de datos MySQL.');
+});
