@@ -227,8 +227,12 @@ app.post('/api/v1/support/transfer', (req, res) => {
 });
 
 // Iniciar el servidor (¡Siempre al final!)
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log('Servidor IVR corriendo en el puerto ' + PORT);
+const db = mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'tu_clave_local',
+    database: process.env.DB_NAME || 'tu_db_local',
+    port: process.env.DB_PORT || 3306,
+    ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : null
 });
 
