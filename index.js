@@ -222,3 +222,8 @@ const db = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor API REST corriendo en http://localhost:${PORT}`);
+});
